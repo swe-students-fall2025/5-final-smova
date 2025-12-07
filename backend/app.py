@@ -8,7 +8,6 @@ from config import config
 from routes.auth import auth_bp
 from routes.movies import movies_bp
 from routes.chat import chat_bp
-from utils.db import get_database, close_database
 import logging
 import os
 
@@ -20,13 +19,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def create_app(config_name='development', use_mock_db=False):
+def create_app(config_name='development'):
     """
-    Creating Application
+    Application factory
     
     Args:
         config_name (str): Configuration name
-        use_mock_db (bool): Use mock database instead of real MongoDB
         
     Returns:
         Flask: Configured Flask application
@@ -45,10 +43,7 @@ def create_app(config_name='development', use_mock_db=False):
         }
     })
     
-    # Initialize database connection
-    with app.app_context():
-        db = get_database(use_mock=use_mock_db)
-        logger.info(f"Database initialized ({'mock mode' if use_mock_db else 'real MongoDB'})")
+    logger.info("Application initialized")
     
     # Register blueprints
     app.register_blueprint(auth_bp)
@@ -122,29 +117,12 @@ def create_app(config_name='development', use_mock_db=False):
             'message': 'Internal server error'
         }), 500
     
-    # Shutdown handler
-    @app.teardown_appcontext
-    def shutdown_session(exception=None):
-        """Close database connection on shutdown"""
-        close_database()
-    
     return app
 
 
 if __name__ == '__main__':
-    # Determine if we should use mock database
-    # Set USE_MOCK_DB=true in environment to use mock mode
-    use_mock = os.getenv('USE_MOCK_DB', 'true').lower() == 'true'
-    
-    if use_mock:
-        logger.info("=" * 60)
-        logger.info("RUNNING IN MOCK DATABASE MODE")
-        logger.info("To use real MongoDB, set environment variable:")
-        logger.info("USE_MOCK_DB=false")
-        logger.info("=" * 60)
-    
     # Create app
-    app = create_app('development', use_mock_db=use_mock)
+    app = create_app('development')
     
     # Run server
     host = app.config['API_HOST']
