@@ -16,8 +16,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Expose port 5000
-EXPOSE 5000
+# Expose port 8000
+EXPOSE 8000
 
-# Run the application
-CMD ["python", "app.py"]
+RUN chmod +x ./entrypoint.sh
+
+
+ENTRYPOINT ["./entrypoint.sh"]
