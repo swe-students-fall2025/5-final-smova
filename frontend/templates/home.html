@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🎬 Movie App</h2>
+            <p class="user-email">{{ user_email }}</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('home') }}" class="nav-link active">
+                <span class="icon">💬</span>
+                Chatbot
+            </a>
+            <a href="#" class="nav-link">
+                <span class="icon">📝</span>
+                Not Watched
+            </a>
+            <a href="#" class="nav-link">
+                <span class="icon">✅</span>
+                Watched
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <span class="icon">🚪</span>
+                Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>AI Movie Recommender</h1>
+            <p>Ask me for movie recommendations!</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Welcome message -->
+            <div class="message bot-message">
+                <div class="message-content">
+                    <p>👋 Hello! I'm your AI movie assistant. I can recommend movies based on your preferences. What kind of movies do you like?</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <form id="chatForm" class="chat-form">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Type your message here..." 
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" class="send-btn">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
