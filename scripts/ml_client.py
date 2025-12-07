@@ -3,7 +3,6 @@ import weaviate
 from datasets import load_dataset
 from weaviate.classes.config import Configure, Property, DataType
 from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
 load_dotenv("../.env")
 
 import os
