@@ -12,30 +12,17 @@ gemini_key = os.getenv('GEMINI_API_KEY')
 client = genai.Client(api_key=gemini_key)
 
 movie_client = weaviate.connect_to_local(port=8080)
-ds = load_dataset("mt0rm0/movie_descriptors")
 
 collection_name = "Movies"
-if movie_client.collections.exists(collection_name):
-    movie_client.collections.delete(collection_name)
 
-articles = movie_client.collections.create(
+
+movies = movie_client.collections.get(
     name=collection_name,
-    vector_config=Configure.Vectors.text2vec_contextionary(),
 
-    properties=[
-        Property(name="title", data_type=DataType.TEXT),
-        Property(name="description", data_type=DataType.TEXT),
-    ],
+   
 )
 
-movies = articles
 
-with movies.batch.dynamic() as batch:
-    for i in ds['train']:
-        batch.add_object(                               
-            properties={"title": i['title'], "description": i['overview']}
-        )
-        print (f"Added movie: {i['title']}")
 
 def get_nearest_k(query, top_k=5):
     return movies.query.near_text(   
@@ -56,7 +43,7 @@ def get_movie_recommendations(query, top_k=5):
         contents=prompt,
     )
 
-    return response
+    return response.text
 
 def main():
     trial = "Give me a scary horror movie"
