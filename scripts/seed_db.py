@@ -12,7 +12,7 @@ if client.collections.exists(collection_name):
 
 articles = client.collections.create(
     name= collection_name,
-    vector_config=Configure.Vectors.text2vec_openai(),
+    vector_config=Configure.Vectors.text2vec_contextionary(),
     properties=[
         Property(name="title", data_type=DataType.TEXT),
         Property(name="description", data_type=DataType.TEXT),
@@ -25,4 +25,6 @@ with articles.batch.dynamic() as batch:
        item = {"title": i['title'], "description": i['overview']}
        batch.add_object(properties=item)
        print(i['title'])
+
+client.close()
 

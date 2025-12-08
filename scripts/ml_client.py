@@ -3,17 +3,16 @@ import weaviate
 from datasets import load_dataset
 from weaviate.classes.config import Configure, Property, DataType
 from dotenv import load_dotenv
+import requests
 load_dotenv("../.env")
 
 import os
 
 gemini_key = os.getenv('GEMINI_API_KEY')
-
 client = genai.Client(api_key=gemini_key)
-
 movie_client = weaviate.connect_to_local(port=8080)
-
 collection_name = "Movies"
+conversation_api = '/api/conversations'
 
 
 movies = movie_client.collections.get(
@@ -21,7 +20,14 @@ movies = movie_client.collections.get(
 
    
 )
-
+#to test the conversation history retrieval after backend is done
+def get_prev_conversations(user_email, convo_id):
+    try:
+        req = conversation_api+f"/{user_email}/{convo_id}"
+        response = requests.get(req)
+        return response.json()['messages']
+    except:
+        return "no previous conversations"
 
 
 def get_nearest_k(query, top_k=5):
@@ -31,12 +37,14 @@ def get_nearest_k(query, top_k=5):
         return_properties=["title", "description"],
     )
 
-def get_movie_recommendations(query, top_k=5):
+def get_movie_recommendations(query, user_email = None, convo_id = None, top_k=5):
     context = get_nearest_k(query, top_k)
+    conversation = get_prev_conversations(user_email, convo_id) if user_email and convo_id else ""
     prompt = (
-        f"you are a movie recommendation assistant. Based on the following movie "
-        f"descriptions, recommend me a movie that best match the user's query: {query}\n"
-        f". This is the context, containing some descriptions of movies: {context}\n"
+        f"you are a movie recommendation assistant. Give me a movie recommendation that fits this query: {query}\n"
+        f". This is all of the previous correspondence with the user: {conversation}\n"
+        f". This is the context, containing some descriptions of movies. You do not have to limit your responses to the provided context: {context}\n"
+        f". Only list one movie. after your recommendation, list name, runtime (in minutes) and description.\n"
     )
     response = client.models.generate_content(
         model="gemini-3-pro-preview",
@@ -47,7 +55,10 @@ def get_movie_recommendations(query, top_k=5):
 
 def main():
     trial = "Give me a scary horror movie"
-    get_movie_recommendations(trial, 10)
+    r = get_movie_recommendations(trial, 5)
+    print(r)
+    movie_client.close()
 
 if __name__ == "__main__":
     main()
+    
