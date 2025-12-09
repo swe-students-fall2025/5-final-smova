@@ -30,7 +30,7 @@ const messages = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    contemt: String,
+    content: String,
     role: ["user", "model"],
     convo_id: {
         type: Number,
