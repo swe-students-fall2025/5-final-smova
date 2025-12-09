@@ -1,0 +1,114 @@
+version: '3.9'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:7.0
+    container_name: movie-app-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - movie-app-network
+
+  # Weaviate Vector Database (Partner's config)
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.34.4
+    container_name: movie-app-weaviate
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --scheme
+      - http
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    environment:
+      CONTEXTIONARY_URL: contextionary:9999
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      ENABLE_MODULES: 'text2vec-contextionary'
+      CLUSTER_HOSTNAME: 'node1'
+    depends_on:
+      - contextionary
+    networks:
+      - movie-app-network
+  contextionary:
+    image: cr.weaviate.io/semitechnologies/contextionary:en0.16.0-v1.2.1
+    container_name: movie-app-contextionary
+    restart: unless-stopped
+    ports:
+      - "9999:9999"
+    environment:
+      OCCURRENCE_WEIGHT_LINEAR_FACTOR: 0.75
+      EXTENSIONS_STORAGE_MODE: weaviate
+      EXTENSIONS_STORAGE_ORIGIN: http://weaviate:8080
+      NEIGHBOR_OCCURRENCE_IGNORE_PERCENTILE: 5
+      ENABLE_COMPOUND_SPLITTING: 'false'
+    networks:
+      - movie-app-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: movie-app-backend
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - TESTING=0
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-dev-secret-key}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key}
+      - JWT_EXPIRATION_HOURS=24
+      - API_PORT=5001
+      - API_HOST=0.0.0.0
+      - CORS_ORIGINS=http://localhost:8000,http://app:8000
+      - WEAVIATE_URL=http://weaviate:8080
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - mongo
+      - weaviate
+    networks:
+      - movie-app-network
+
+  # Frontend Application
+  app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: movie-app-frontend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - BACKEND_API_URL=http://backend:5001/api
+      - MONGODB_URI=mongodb://mongo:27017
+      - WEAVIATE_URL=http://weaviate:8080
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-dev-secret-key}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - backend
+      - mongo
+      - weaviate
+      - contextionary
+    networks:
+      - movie-app-network
+
+networks:
+  movie-app-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  weaviate_data:
