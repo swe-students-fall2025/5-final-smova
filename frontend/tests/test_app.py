@@ -222,3 +222,181 @@ def test_register_form_accepts_various_names(client):
     
     assert response.status_code == 200
     assert b'Registration successful!' in response.data
+
+
+# ============ Test Movie List Pages ============
+
+def test_not_watched_page_requires_login(client):
+    """Test that not watched page requires login"""
+    response = client.get('/not-watched', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Please login to access this page' in response.data
+
+
+def test_not_watched_page_loads_when_logged_in(logged_in_client):
+    """Test that not watched page loads when logged in"""
+    response = logged_in_client.get('/not-watched')
+    assert response.status_code == 200
+    assert b'Movies to Watch' in response.data
+    assert b'Not Watched' in response.data
+
+
+def test_not_watched_page_displays_movies(logged_in_client):
+    """Test that not watched page displays mock movies"""
+    response = logged_in_client.get('/not-watched')
+    assert response.status_code == 200
+    assert b'Inception' in response.data
+    assert b'The Shawshank Redemption' in response.data
+
+
+def test_watched_page_requires_login(client):
+    """Test that watched page requires login"""
+    response = client.get('/watched', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Please login to access this page' in response.data
+
+
+def test_watched_page_loads_when_logged_in(logged_in_client):
+    """Test that watched page loads when logged in"""
+    response = logged_in_client.get('/watched')
+    assert response.status_code == 200
+    assert b'Watched Movies' in response.data
+
+
+def test_watched_page_displays_movies_with_ratings(logged_in_client):
+    """Test that watched page displays movies with ratings"""
+    response = logged_in_client.get('/watched')
+    assert response.status_code == 200
+    assert b'The Dark Knight' in response.data
+    assert b'9.0' in response.data
+
+
+# ============ Test Movie Detail Page ============
+
+def test_movie_detail_requires_login(client):
+    """Test that movie detail page requires login"""
+    response = client.get('/movie/1', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Please login to access this page' in response.data
+
+
+def test_movie_detail_loads_for_valid_movie(logged_in_client):
+    """Test that movie detail page loads for valid movie"""
+    response = logged_in_client.get('/movie/1')
+    assert response.status_code == 200
+    assert b'Inception' in response.data
+    assert b'148 minutes' in response.data
+
+
+def test_movie_detail_shows_rating_form_for_unwatched(logged_in_client):
+    """Test that unwatched movies show rating form"""
+    response = logged_in_client.get('/movie/1')
+    assert response.status_code == 200
+    assert b'Rate This Movie' in response.data
+    assert b'Your Rating' in response.data
+
+
+def test_movie_detail_shows_rating_for_watched(logged_in_client):
+    """Test that watched movies show their rating"""
+    response = logged_in_client.get('/movie/4')
+    assert response.status_code == 200
+    assert b'9.0' in response.data
+    assert b'Watched' in response.data
+
+
+def test_movie_detail_invalid_id(logged_in_client):
+    """Test that invalid movie ID redirects with error"""
+    response = logged_in_client.get('/movie/999', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Movie not found' in response.data
+
+
+# ============ Test Rate Movie ============
+
+def test_rate_movie_requires_login(client):
+    """Test that rating a movie requires login"""
+    response = client.post('/movie/1/rate', data={'rating': '8.5'}, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Please login to access this page' in response.data
+
+
+def test_rate_movie_success(logged_in_client):
+    """Test successful movie rating"""
+    response = logged_in_client.post('/movie/1/rate', 
+                                     data={'rating': '8.5'}, 
+                                     follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Movie rated' in response.data or b'8.5' in response.data
+
+
+def test_rate_movie_without_rating(logged_in_client):
+    """Test rating movie without providing rating value"""
+    response = logged_in_client.post('/movie/1/rate', 
+                                     data={}, 
+                                     follow_redirects=True)
+    assert response.status_code == 200
+
+
+# ============ Test Confirm Movie Page ============
+
+def test_confirm_page_requires_login(client):
+    """Test that confirm page requires login"""
+    response = client.get('/confirm', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Please login to access this page' in response.data
+
+
+def test_confirm_page_loads_with_params(logged_in_client):
+    """Test that confirm page loads with query parameters"""
+    response = logged_in_client.get('/confirm?movie_name=Titanic&description=A%20great%20movie&runtime=195')
+    assert response.status_code == 200
+    assert b'Add Movie to Watchlist' in response.data
+    assert b'Titanic' in response.data
+
+
+def test_confirm_page_loads_with_defaults(logged_in_client):
+    """Test that confirm page loads with default values"""
+    response = logged_in_client.get('/confirm')
+    assert response.status_code == 200
+    assert b'Recommended Movie' in response.data
+
+
+def test_confirm_page_post_success(logged_in_client):
+    """Test successful movie confirmation"""
+    response = logged_in_client.post('/confirm',
+                                     data={
+                                         'movie_name': 'Test Movie',
+                                         'movie_description': 'A test description',
+                                         'runtime': '120'
+                                     },
+                                     follow_redirects=True)
+    assert response.status_code == 200
+    assert b'added to your watchlist' in response.data or b'Test Movie' in response.data
+
+
+def test_confirm_page_post_redirects_to_not_watched(logged_in_client):
+    """Test that confirm page redirects to not watched after adding"""
+    response = logged_in_client.post('/confirm',
+                                     data={
+                                         'movie_name': 'Test Movie',
+                                         'movie_description': 'A test description',
+                                         'runtime': '120'
+                                     },
+                                     follow_redirects=False)
+    assert response.status_code == 302
+    assert '/not-watched' in response.location
+
+
+# ============ Test Navigation ============
+
+def test_sidebar_navigation_links(logged_in_client):
+    """Test that sidebar links are present on all pages"""
+    pages = ['/home', '/not-watched', '/watched', '/movie/1']
+    
+    for page in pages:
+        response = logged_in_client.get(page)
+        assert response.status_code == 200
+        assert b'Chatbot' in response.data
+        assert b'Not Watched' in response.data
+        assert b'Watched' in response.data
+        assert b'Logout' in response.data

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Not Watched - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🎬 Movie App</h2>
+            <p class="user-email">{{ session.get('user_email') }}</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('home') }}" class="nav-link">
+                <span class="icon">💬</span>
+                Chatbot
+            </a>
+            <a href="{{ url_for('not_watched') }}" class="nav-link active">
+                <span class="icon">📝</span>
+                Not Watched
+            </a>
+            <a href="{{ url_for('watched') }}" class="nav-link">
+                <span class="icon">✅</span>
+                Watched
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <span class="icon">🚪</span>
+                Logout
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>📝 Movies to Watch</h1>
+            <p>Your watchlist of movies you haven't seen yet</p>
+        </div>
+        
+        <div class="movies-grid">
+            {% if movies %}
+                {% for movie in movies %}
+                <div class="movie-card">
+                    <div class="movie-card-header">
+                        <h3>{{ movie.movie_name }}</h3>
+                        {% if movie.runtime %}
+                        <span class="runtime">{{ movie.runtime }} min</span>
+                        {% endif %}
+                    </div>
+                    <p class="movie-description">{{ movie.movie_description }}</p>
+                    <div class="movie-card-footer">
+                        <a href="{{ url_for('movie_detail', movie_id=movie.movie_id) }}" class="btn btn-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🎬</div>
+                    <h2>No Movies Yet</h2>
+                    <p>Start chatting with our AI to get movie recommendations!</p>
+                    <a href="{{ url_for('home') }}" class="btn btn-primary">Go to Chatbot</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
