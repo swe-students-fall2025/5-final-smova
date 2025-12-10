@@ -23,6 +23,7 @@ services:
       - --port
       - "8080"
       - --scheme
+      
       - http
     ports:
       - "8080:8080"
@@ -73,7 +74,7 @@ services:
       - JWT_EXPIRATION_HOURS=24
       - API_PORT=5001
       - API_HOST=0.0.0.0
-      - CORS_ORIGINS=http://134.209.41.148:8000 
+      - CORS_ORIGINS=*
       - WEAVIATE_URL=http://weaviate:8080
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
