@@ -1,7 +1,7 @@
 # Movie Recommender
 
-[![Backend CI/CD](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/backend-ci-cd.yml/badge.svg)](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/backend-ci-cd.yml)
-[![Frontend CI/CD](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/frontend-ci-cd.yml/badge.svg)](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/frontend-ci-cd.yml)
+[![Backend CI/CD](https://github.com/swe-students-fall2025/5-final-smova/actions/workflows/backend-ci-cd.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-smova/actions/workflows/backend-ci-cd.yml)
+[![Frontend CI/CD](https://github.com/swe-students-fall2025/5-final-smova/actions/workflows/frontend-ci-cd.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-smova/actions/workflows/frontend-ci-cd.yml)
 
 An AI-powered movie recommendation system that helps users discover and manage their movie watchlist. The application uses Google's Gemini AI for intelligent recommendations and Weaviate vector database for semantic movie search through a RAG (Retrieval-Augmented Generation) pipeline.
 
@@ -23,10 +23,18 @@ An AI-powered movie recommendation system that helps users discover and manage t
 
 ## Docker Images
 
-This application uses containerized deployment. Docker images are built automatically via CI/CD pipelines:
+This application uses containerized deployment. Docker images are built automatically via CI/CD pipelines and hosted on Docker Hub:
 
-- **Backend API**: `movie-recommender-backend:latest`
-- **Frontend Application**: `movie-recommender-frontend:latest`
+- **Backend API**: [m9membreno/movie-recommender-backend](https://hub.docker.com/r/m9membreno/movie-recommender-backend)
+- **Frontend Application**: [m9membreno/movie-recommender-frontend](https://hub.docker.com/r/m9membreno/movie-recommender-frontend)
+
+Pull images:
+```bash
+docker pull m9membreno/movie-recommender-backend:latest
+docker pull m9membreno/movie-recommender-frontend:latest
+```
+
+The application is deployed on Digital Ocean using these Docker images via automated CI/CD pipelines.
 
 The application is deployed directly on a Digital Ocean droplet using Docker containers.
 
@@ -79,7 +87,7 @@ Before running this project, ensure you have:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/software-students-fall2024/4-containers-swe.git
+git clone https://github.com/swe-students-fall2025/5-final-smova.git
 cd 4-containers-swe
 ```
 

@@ -11,11 +11,8 @@ COPY . .
 
 RUN chmod +x ./entrypoint.sh
 
-
 # Expose port
 EXPOSE 5001
 
-
-
 # Run the application
-ENTRYPOINT [ "./entrypoint.sh" ]
+ENTRYPOINT ["./entrypoint.sh"]
