@@ -11,7 +11,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 
-BACKEND_API_URL = os.getenv('c', 'http://localhost:5001/api')
+BACKEND_API_URL = 'http://134.209.41.148:5001/api'
 
 
 def is_logged_in():
