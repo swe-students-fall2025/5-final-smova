@@ -7,7 +7,7 @@ import os
 # Get environment variables
 gemini_key = os.getenv('GEMINI_API_KEY')
 WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
-BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL", "http://localhost:5001")
+BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL", "http://134.209.41.148:5001")
 conversation_api = f"{BACKEND_BASE_URL}/api/chat/conversation"
 collection_name = "Movies"
 
