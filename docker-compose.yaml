@@ -73,7 +73,7 @@ services:
       - JWT_EXPIRATION_HOURS=24
       - API_PORT=5001
       - API_HOST=0.0.0.0
-      - CORS_ORIGINS=http://localhost:8000,http://app:8000
+      - CORS_ORIGINS=http://localhost:8000 
       - WEAVIATE_URL=http://weaviate:8080
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
@@ -92,7 +92,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - BACKEND_API_URL=http://backend:5001/api
+      - BACKEND_API_URL=http://localhost:5001/api
       - MONGODB_URI=mongodb://mongo:27017
       - WEAVIATE_URL=http://weaviate:8080
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-dev-secret-key}

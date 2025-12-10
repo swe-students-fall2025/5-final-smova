@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 let currentConvoId = null;
 let currentUserEmail = null;
 

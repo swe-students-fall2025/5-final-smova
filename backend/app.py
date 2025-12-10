@@ -4,7 +4,7 @@ Main Flask application
 """
 from flask import Flask, jsonify
 from flask_cors import CORS
-from config import config
+from config import Config, config
 from routes.auth import auth_bp
 from routes.movies import movies_bp
 from routes.chat import chat_bp
