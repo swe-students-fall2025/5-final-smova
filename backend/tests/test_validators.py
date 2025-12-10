@@ -21,8 +21,8 @@ class TestValidateRegistrationData:
             "email": "john@example.com",
             "password": "password123"
         }
-        result = validate_registration_data(data)
-        assert result is True
+        is_valid, _ = validate_registration_data(data)
+        assert is_valid is True
     
     def test_validate_registration_data_missing_fname(self):
         data = {
@@ -30,8 +30,8 @@ class TestValidateRegistrationData:
             "email": "john@example.com",
             "password": "password123"
         }
-        result = validate_registration_data(data)
-        assert result is False
+        is_valid, _ = validate_registration_data(data)
+        assert is_valid is False
     
     def test_validate_registration_data_empty_fname(self):
         data = {
@@ -40,8 +40,8 @@ class TestValidateRegistrationData:
             "email": "john@example.com",
             "password": "password123"
         }
-        result = validate_registration_data(data)
-        assert result is False
+        is_valid, _ = validate_registration_data(data)
+        assert is_valid is False
     
     def test_validate_registration_data_missing_email(self):
         data = {
@@ -49,8 +49,8 @@ class TestValidateRegistrationData:
             "lname": "Doe",
             "password": "password123"
         }
-        result = validate_registration_data(data)
-        assert result is False
+        is_valid, _ = validate_registration_data(data)
+        assert is_valid is False
     
     def test_validate_registration_data_invalid_email(self):
         data = {
@@ -59,8 +59,8 @@ class TestValidateRegistrationData:
             "email": "notanemail",
             "password": "password123"
         }
-        result = validate_registration_data(data)
-        assert result is False
+        is_valid, _ = validate_registration_data(data)
+        assert is_valid is False
     
     def test_validate_registration_data_short_password(self):
         data = {
@@ -69,8 +69,8 @@ class TestValidateRegistrationData:
             "email": "john@example.com",
             "password": "12345"
         }
-        result = validate_registration_data(data)
-        assert result is False
+        is_valid, _ = validate_registration_data(data)
+        assert is_valid is False
 
 
 class TestValidateLoginData:
@@ -79,30 +79,30 @@ class TestValidateLoginData:
             "email": "user@example.com",
             "password": "password123"
         }
-        result = validate_login_data(data)
-        assert result is True
+        is_valid, _ = validate_login_data(data)
+        assert is_valid is True
     
     def test_validate_login_data_missing_email(self):
         data = {
             "password": "password123"
         }
-        result = validate_login_data(data)
-        assert result is False
+        is_valid, _ = validate_login_data(data)
+        assert is_valid is False
     
     def test_validate_login_data_invalid_email(self):
         data = {
             "email": "notanemail",
             "password": "password123"
         }
-        result = validate_login_data(data)
-        assert result is False
+        is_valid, _ = validate_login_data(data)
+        assert is_valid is False
     
     def test_validate_login_data_missing_password(self):
         data = {
             "email": "user@example.com"
         }
-        result = validate_login_data(data)
-        assert result is False
+        is_valid, _ = validate_login_data(data)
+        assert is_valid is False
 
 
 class TestValidateChatMessage:
@@ -112,8 +112,8 @@ class TestValidateChatMessage:
             "role": "user",
             "convo_id": 1
         }
-        result = validate_chat_message(data)
-        assert result is True
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is True
     
     def test_validate_chat_message_role_model(self):
         data = {
@@ -121,16 +121,16 @@ class TestValidateChatMessage:
             "role": "model",
             "convo_id": 2
         }
-        result = validate_chat_message(data)
-        assert result is True
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is True
     
     def test_validate_chat_message_missing_content(self):
         data = {
             "role": "user",
             "convo_id": 1
         }
-        result = validate_chat_message(data)
-        assert result is False
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is False
     
     def test_validate_chat_message_empty_content(self):
         data = {
@@ -138,8 +138,8 @@ class TestValidateChatMessage:
             "role": "user",
             "convo_id": 1
         }
-        result = validate_chat_message(data)
-        assert result is False
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is False
     
     def test_validate_chat_message_invalid_role(self):
         data = {
@@ -147,16 +147,16 @@ class TestValidateChatMessage:
             "role": "admin",
             "convo_id": 1
         }
-        result = validate_chat_message(data)
-        assert result is False
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is False
     
     def test_validate_chat_message_missing_convo_id(self):
         data = {
             "content": "Hello",
             "role": "user"
         }
-        result = validate_chat_message(data)
-        assert result is False
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is False
     
     def test_validate_chat_message_convo_id_none(self):
         data = {
@@ -164,8 +164,8 @@ class TestValidateChatMessage:
             "role": "user",
             "convo_id": None
         }
-        result = validate_chat_message(data)
-        assert result is False
+        is_valid, _ = validate_chat_message(data)
+        assert is_valid is False
 
 
 class TestValidateMovieData:
@@ -177,46 +177,46 @@ class TestValidateMovieData:
             "has_watched": True,
             "rating": 8.5
         }
-        result = validate_movie_data(data)
-        assert result is True
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is True
     
     def test_validate_movie_data_minimal_valid(self):
         data = {
             "movie_name": "The Matrix",
             "movie_id": 1
         }
-        result = validate_movie_data(data)
-        assert result is True
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is True
     
     def test_validate_movie_data_missing_movie_name(self):
         data = {
             "movie_id": 1
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
     
     def test_validate_movie_data_empty_movie_name(self):
         data = {
             "movie_name": "",
             "movie_id": 1
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
     
     def test_validate_movie_data_missing_movie_id(self):
         data = {
             "movie_name": "The Matrix"
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
     
     def test_validate_movie_data_movie_id_none(self):
         data = {
             "movie_name": "The Matrix",
             "movie_id": None
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
     
     def test_validate_movie_data_movie_description_non_string(self):
         data = {
@@ -224,8 +224,8 @@ class TestValidateMovieData:
             "movie_id": 1,
             "movie_description": 123
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
     
     def test_validate_movie_data_has_watched_non_boolean(self):
         data = {
@@ -233,8 +233,8 @@ class TestValidateMovieData:
             "movie_id": 1,
             "has_watched": "true"
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
     
     def test_validate_movie_data_rating_invalid(self):
         data = {
@@ -242,5 +242,5 @@ class TestValidateMovieData:
             "movie_id": 1,
             "rating": "notanumber"
         }
-        result = validate_movie_data(data)
-        assert result is False
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is False
