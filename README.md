@@ -23,10 +23,18 @@ An AI-powered movie recommendation system that helps users discover and manage t
 
 ## Docker Images
 
-This application uses containerized deployment. Docker images are built automatically via CI/CD pipelines:
+This application uses containerized deployment. Docker images are built automatically via CI/CD pipelines and hosted on Docker Hub:
 
-- **Backend API**: `movie-recommender-backend:latest`
-- **Frontend Application**: `movie-recommender-frontend:latest`
+- **Backend API**: [m9membreno/movie-recommender-backend](https://hub.docker.com/r/m9membreno/movie-recommender-backend)
+- **Frontend Application**: [m9membreno/movie-recommender-frontend](https://hub.docker.com/r/m9membreno/movie-recommender-frontend)
+
+Pull images:
+```bash
+docker pull m9membreno/movie-recommender-backend:latest
+docker pull m9membreno/movie-recommender-frontend:latest
+```
+
+The application is deployed on Digital Ocean using these Docker images via automated CI/CD pipelines.
 
 The application is deployed directly on a Digital Ocean droplet using Docker containers.
 
