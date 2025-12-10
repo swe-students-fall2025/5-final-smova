@@ -5,13 +5,12 @@ from weaviate.classes.config import Configure, Property, DataType
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 import requests
-load_dotenv("../.env")
 
 import os
 
 gemini_key = os.getenv('GEMINI_API_KEY')
 client = genai.Client(api_key=gemini_key)
-WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
 parsed = urlparse(WEAVIATE_URL)
 movie_client = weaviate.connect_to_local(host=parsed.hostname, port=parsed.port)
 collection_name = "Movies"

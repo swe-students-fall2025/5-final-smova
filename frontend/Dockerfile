@@ -19,7 +19,6 @@ COPY . .
 # Expose port 8000
 EXPOSE 8000
 
-RUN chmod +x ./entrypoint.sh
 
 
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["python", "app.py"]

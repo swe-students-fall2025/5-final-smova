@@ -33,21 +33,14 @@ def get_ai_recommendation(user_message: str) -> dict:
             'source': 'ai' | 'mock'
         }
     """
-    try:
-        response = get_movie_recommendations(user_message, top_k=5)
-        return {
-            'response': response.text if hasattr(response, 'text') else str(response),
-            'source': 'ai'
-        }
-    except Exception:
-        logger.exception("ML client error while getting recommendation")
-            # fall through to mock
-
-    # Mock fallback
+    response = get_movie_recommendations(user_message, top_k=5)
     return {
-        'response': f"I'd recommend checking out some action movies based on your interest in '{user_message}'",
-        'source': 'mock'
+        'response': response,
+        'source': 'ai'
     }
+
+
+
 
 
 @chat_bp.route('/message', methods=['POST'])

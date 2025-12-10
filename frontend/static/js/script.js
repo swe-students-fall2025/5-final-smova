@@ -1,9 +1,8 @@
 let currentConvoId = null;
 let currentUserEmail = null;
 
-const API_BASE_URL = 'ttp://app:8000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
-// Auto-hide flash messages after 5 seconds
 document.addEventListener('DOMContentLoaded', function () {
     const flashMessages = document.querySelectorAll('.flash');
 
@@ -16,17 +15,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     });
 
-    // Get user email from DOM (e.g. <span class="user-email">user@example.com</span>)
     const emailEl = document.querySelector('.user-email');
     if (emailEl) {
         currentUserEmail = emailEl.textContent.trim();
     }
 
-    // Chat functionality
     initChat();
 });
 
-// Chat initialization
 function initChat() {
     const chatForm = document.getElementById('chatForm');
     if (!chatForm) return;
@@ -41,15 +37,12 @@ function initChat() {
 
         input.value = '';
 
-        // Show typing indicator while backend processes and generates AI reply
         showTypingIndicator();
 
-        // Send message to backend; backend auto-creates both user + model messages
         sendMessageToBackend(message);
     });
 }
 
-// Send message to backend and then load/render conversation
 function sendMessageToBackend(userMessage) {
     if (!currentUserEmail) {
         hideTypingIndicator();
@@ -65,16 +58,15 @@ function sendMessageToBackend(userMessage) {
         body: JSON.stringify({
             role: 'user',
             message: userMessage,
-            // IMPORTANT: only send convo_id if we actually have one
-            convo_id: currentConvoId || null
+            convo_id: currentConvoId || null,
+            user_email: currentUserEmail
         })
     })
         .then(async res => {
             let data = null;
 
-            // Try to parse JSON; if it fails, show raw text & status
             try {
-                const clone = res.clone(); // so we can inspect text if needed
+                const clone = res.clone();
                 data = await res.json();
                 console.log('/chat/message JSON response:', {
                     status: res.status,
@@ -83,7 +75,6 @@ function sendMessageToBackend(userMessage) {
             } catch (jsonErr) {
                 console.error('Failed to parse JSON from /chat/message response:', jsonErr);
 
-                // Try to read raw text for debugging
                 try {
                     const text = await res.text();
                     console.log('/chat/message raw response body:', text);
@@ -99,7 +90,6 @@ function sendMessageToBackend(userMessage) {
 
             hideTypingIndicator();
 
-            // If HTTP not OK or backend says success:false, show detailed error
             if (!res.ok || !data.success) {
                 const errorCode = data.error_code ? ` (${data.error_code})` : '';
                 const msg = data.message || 'Sorry, something went wrong. Please try again.';
@@ -111,21 +101,17 @@ function sendMessageToBackend(userMessage) {
                 return;
             }
 
-            // Save/refresh conversation ID from backend
             currentConvoId = data.convo_id;
 
-            // Now load the full conversation and render it
             loadConversation();
         })
         .catch(error => {
-            // ONLY hits when fetch itself fails (network/CORS/URL)
             console.error('Network or fetch error calling /chat/message:', error);
             hideTypingIndicator();
             addBotMessage(`Network error: ${error.message}`);
         });
 }
 
-// Fetch the full conversation from backend and render messages
 function loadConversation() {
     if (!currentConvoId || !currentUserEmail) return;
 
@@ -168,21 +154,22 @@ function loadConversation() {
         });
 }
 
-// Render all messages in the conversation based on role
 function renderConversation(messages) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
 
-    // Clear and re-render full conversation
     chatMessages.innerHTML = '';
 
     messages.forEach(msg => {
         if (msg.role === 'user') {
             addUserMessage(msg.content, false);
         } else if (msg.role === 'model') {
-            addBotMessage(msg.content, false);
+            if (isMovieRecommendation(msg.content)) {
+                addBotMovieRecommendationFromText(msg.content, false);
+            } else {
+                addBotMessage(msg.content, false);
+            }
         } else {
-            // Fallback if role unknown
             addBotMessage(msg.content, false);
         }
     });
@@ -190,8 +177,6 @@ function renderConversation(messages) {
     scrollToBottom();
 }
 
-// Add user message to chat
-// scroll = whether to auto-scroll after adding
 function addUserMessage(text, scroll = true) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
@@ -207,7 +192,6 @@ function addUserMessage(text, scroll = true) {
     if (scroll) scrollToBottom();
 }
 
-// Add bot message to chat
 function addBotMessage(text, scroll = true) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
@@ -223,12 +207,65 @@ function addBotMessage(text, scroll = true) {
     if (scroll) scrollToBottom();
 }
 
-// Show typing indicator
+function isMovieRecommendation(text) {
+    return /Movie Name:\s*/i.test(text) &&
+           /Runtime:\s*\d+/i.test(text) &&
+           /Description:\s*/i.test(text);
+}
+
+function parseMovieRecommendation(text) {
+    const nameMatch = text.match(/Movie Name:\s*(.+)/i);
+    const runtimeMatch = text.match(/Runtime:\s*([\d.]+)\s*minutes?/i);
+    const descMatch = text.match(/Description:\s*([\s\S]*)/i);
+
+    if (!nameMatch || !runtimeMatch || !descMatch) {
+        return null;
+    }
+
+    const name = nameMatch[1].trim();
+    const runtime = parseInt(runtimeMatch[1], 10);
+    const description = descMatch[1].trim();
+
+    return { name, runtime, description };
+}
+
+function addBotMovieRecommendationFromText(text, scroll = true) {
+    const parsed = parseMovieRecommendation(text);
+    if (!parsed) {
+        addBotMessage(text, scroll);
+        return;
+    }
+
+    const { name, runtime, description } = parsed;
+
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot-message';
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <p>Great choice! I'd recommend:</p>
+            <div class="recommendation-card">
+                <h4>🎬 ${escapeHtml(name)}</h4>
+                <p class="rec-description">${escapeHtml(description)}</p>
+                <p class="rec-runtime">⏱️ Runtime: ${runtime} minutes</p>
+                <a href="/confirm?movie_name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}&runtime=${runtime}" 
+                   class="btn btn-primary btn-sm rec-btn">
+                    ➕ Add to Watchlist
+                </a>
+            </div>
+            <p>Would you like another recommendation?</p>
+        </div>
+    `;
+    chatMessages.appendChild(messageDiv);
+    if (scroll) scrollToBottom();
+}
+
 function showTypingIndicator() {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
 
-    // Avoid duplicating typing indicator
     if (document.getElementById('typingIndicator')) return;
 
     const typingDiv = document.createElement('div');
@@ -247,7 +284,6 @@ function showTypingIndicator() {
     scrollToBottom();
 }
 
-// Hide typing indicator
 function hideTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
     if (indicator) {
@@ -255,26 +291,22 @@ function hideTypingIndicator() {
     }
 }
 
-// Scroll to bottom of chat
 function scrollToBottom() {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Escape HTML to prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Helper function to navigate to confirm page with movie details (still usable)
 function handleAddFromChat(movieName, description, runtime) {
     window.location.href = `/confirm?movie_name=${encodeURIComponent(movieName)}&description=${encodeURIComponent(description)}&runtime=${runtime}`;
 }
 
-// Add slideOut animation
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideOut {
