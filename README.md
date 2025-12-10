@@ -1,7 +1,7 @@
 # Movie Recommender
 
-[![Backend CI/CD](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/backend-ci-cd.yml/badge.svg)](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/backend-ci-cd.yml)
-[![Frontend CI/CD](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/frontend-ci-cd.yml/badge.svg)](https://github.com/software-students-fall2024/4-containers-swe/actions/workflows/frontend-ci-cd.yml)
+[![Backend CI/CD](https://github.com/software-students-fall2025/4-containers-swe/actions/workflows/backend-ci-cd.yml/badge.svg)](https://github.com/software-students-fall2025/4-containers-swe/actions/workflows/backend-ci-cd.yml)
+[![Frontend CI/CD](https://github.com/software-students-fall2025/4-containers-swe/actions/workflows/frontend-ci-cd.yml/badge.svg)](https://github.com/software-students-fall2025/4-containers-swe/actions/workflows/frontend-ci-cd.yml)
 
 An AI-powered movie recommendation system that helps users discover and manage their movie watchlist. The application uses Google's Gemini AI for intelligent recommendations and Weaviate vector database for semantic movie search through a RAG (Retrieval-Augmented Generation) pipeline.
 
@@ -79,7 +79,7 @@ Before running this project, ensure you have:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/software-students-fall2024/4-containers-swe.git
+git clone https://github.com/software-students-fall2025/4-containers-swe.git
 cd 4-containers-swe
 ```
 
