@@ -108,61 +108,31 @@ class TestValidateLoginData:
 class TestValidateChatMessage:
     def test_validate_chat_message_valid(self):
         data = {
-            "content": "Hello, I like action movies",
-            "role": "user",
-            "convo_id": 1
+            "message": "Hello, I like action movies",
+            "user_email": "test@example.com"
         }
         is_valid, _ = validate_chat_message(data)
         assert is_valid is True
     
-    def test_validate_chat_message_role_model(self):
+    def test_validate_chat_message_missing_message(self):
         data = {
-            "content": "Here are some recommendations",
-            "role": "model",
-            "convo_id": 2
-        }
-        is_valid, _ = validate_chat_message(data)
-        assert is_valid is True
-    
-    def test_validate_chat_message_missing_content(self):
-        data = {
-            "role": "user",
-            "convo_id": 1
+            "user_email": "test@example.com"
         }
         is_valid, _ = validate_chat_message(data)
         assert is_valid is False
     
-    def test_validate_chat_message_empty_content(self):
+    def test_validate_chat_message_empty_message(self):
         data = {
-            "content": "",
-            "role": "user",
-            "convo_id": 1
+            "message": "",
+            "user_email": "test@example.com"
         }
         is_valid, _ = validate_chat_message(data)
         assert is_valid is False
     
-    def test_validate_chat_message_invalid_role(self):
+    def test_validate_chat_message_whitespace_only(self):
         data = {
-            "content": "Hello",
-            "role": "admin",
-            "convo_id": 1
-        }
-        is_valid, _ = validate_chat_message(data)
-        assert is_valid is False
-    
-    def test_validate_chat_message_missing_convo_id(self):
-        data = {
-            "content": "Hello",
-            "role": "user"
-        }
-        is_valid, _ = validate_chat_message(data)
-        assert is_valid is False
-    
-    def test_validate_chat_message_convo_id_none(self):
-        data = {
-            "content": "Hello",
-            "role": "user",
-            "convo_id": None
+            "message": "   ",
+            "user_email": "test@example.com"
         }
         is_valid, _ = validate_chat_message(data)
         assert is_valid is False
@@ -172,7 +142,6 @@ class TestValidateMovieData:
     def test_validate_movie_data_valid(self):
         data = {
             "movie_name": "The Matrix",
-            "movie_id": 1,
             "movie_description": "A sci-fi action film",
             "has_watched": True,
             "rating": 8.5
@@ -182,38 +151,28 @@ class TestValidateMovieData:
     
     def test_validate_movie_data_minimal_valid(self):
         data = {
-            "movie_name": "The Matrix",
-            "movie_id": 1
+            "movie_name": "The Matrix"
         }
         is_valid, _ = validate_movie_data(data)
         assert is_valid is True
     
     def test_validate_movie_data_missing_movie_name(self):
         data = {
-            "movie_id": 1
+            "movie_description": "A movie"
         }
         is_valid, _ = validate_movie_data(data)
         assert is_valid is False
     
     def test_validate_movie_data_empty_movie_name(self):
         data = {
-            "movie_name": "",
-            "movie_id": 1
+            "movie_name": ""
         }
         is_valid, _ = validate_movie_data(data)
         assert is_valid is False
     
-    def test_validate_movie_data_missing_movie_id(self):
+    def test_validate_movie_data_whitespace_movie_name(self):
         data = {
-            "movie_name": "The Matrix"
-        }
-        is_valid, _ = validate_movie_data(data)
-        assert is_valid is False
-    
-    def test_validate_movie_data_movie_id_none(self):
-        data = {
-            "movie_name": "The Matrix",
-            "movie_id": None
+            "movie_name": "   "
         }
         is_valid, _ = validate_movie_data(data)
         assert is_valid is False
@@ -221,7 +180,6 @@ class TestValidateMovieData:
     def test_validate_movie_data_movie_description_non_string(self):
         data = {
             "movie_name": "The Matrix",
-            "movie_id": 1,
             "movie_description": 123
         }
         is_valid, _ = validate_movie_data(data)
@@ -230,7 +188,6 @@ class TestValidateMovieData:
     def test_validate_movie_data_has_watched_non_boolean(self):
         data = {
             "movie_name": "The Matrix",
-            "movie_id": 1,
             "has_watched": "true"
         }
         is_valid, _ = validate_movie_data(data)
@@ -239,8 +196,23 @@ class TestValidateMovieData:
     def test_validate_movie_data_rating_invalid(self):
         data = {
             "movie_name": "The Matrix",
-            "movie_id": 1,
             "rating": "notanumber"
         }
         is_valid, _ = validate_movie_data(data)
         assert is_valid is False
+    
+    def test_validate_movie_data_rating_valid_int(self):
+        data = {
+            "movie_name": "The Matrix",
+            "rating": 8
+        }
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is True
+    
+    def test_validate_movie_data_rating_valid_float(self):
+        data = {
+            "movie_name": "The Matrix",
+            "rating": 8.5
+        }
+        is_valid, _ = validate_movie_data(data)
+        assert is_valid is True
