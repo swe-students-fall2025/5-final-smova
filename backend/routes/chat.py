@@ -10,8 +10,8 @@ from ml_client import get_movie_recommendations
 
 import os
 
-from ..DAL import conversations_dal
-from .utils.validators import validate_chat_message
+from DAL import conversations_dal
+from utils.validators import validate_chat_message
 
 logger = logging.getLogger(__name__)
 

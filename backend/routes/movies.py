@@ -4,8 +4,8 @@ Handles movie CRUD operations
 """
 from flask import Blueprint, request, jsonify
 from bson import ObjectId
-from ..DAL import movies_dal
-from .utils.validators import validate_movie_data
+from DAL import movies_dal
+from utils.validators import validate_movie_data
 import logging
 from datetime import datetime
 

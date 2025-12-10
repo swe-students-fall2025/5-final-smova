@@ -3,9 +3,9 @@ Authentication routes
 Handles user registration, login, and token verification
 """
 from flask import Blueprint, request, jsonify
-from ..DAL import users_dal
-from .utils.auth_helpers import hash_password, verify_password, generate_token, decode_token
-from .utils.validators import validate_registration_data, validate_login_data
+from DAL import users_dal
+from utils.auth_helpers import hash_password, verify_password, generate_token, decode_token
+from utils.validators import validate_registration_data, validate_login_data
 import logging
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ require('dotenv').config();
 let currentConvoId = null;
 let currentUserEmail = null;
 
-const API_BASE_URL = process.env.BACKEND_URL || 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 document.addEventListener('DOMContentLoaded', function () {
     const flashMessages = document.querySelectorAll('.flash');
