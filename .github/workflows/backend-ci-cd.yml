@@ -1,5 +1,4 @@
 name: Backend CI/CD
-
 on:
   push:
     branches: 
@@ -14,7 +13,6 @@ on:
       - master
     paths:
       - 'backend/**'
-
 jobs:
   test:
     name: Run Tests
@@ -42,6 +40,9 @@ jobs:
         TESTING: 1
         FLASK_SECRET_KEY: test-secret-key
         JWT_SECRET_KEY: test-jwt-secret
+        GEMINI_API_KEY: mock-key-for-unit-tests
+        WEAVIATE_URL: http://localhost:8080
+        BACKEND_BASE_URL: http://localhost:5001
       run: |
         python -m pytest tests/ --cov=. --cov-report=term-missing --cov-fail-under=80
     
@@ -49,7 +50,7 @@ jobs:
       working-directory: ./backend
       run: |
         python -m pytest tests/ --cov=. --cov-report=term
-
+  
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
@@ -84,7 +85,7 @@ jobs:
       run: |
         echo "✅ Docker image built successfully"
         echo "Image: ${{ secrets.DOCKERHUB_USERNAME }}/movie-recommender-backend:latest"
-
+  
   deploy:
     name: Deploy to Digital Ocean
     runs-on: ubuntu-latest
@@ -107,7 +108,7 @@ jobs:
           docker stop movie-backend || true
           docker rm movie-backend || true
           
-          # Run new container
+          # Run new container with REAL services
           docker run -d \
             --name movie-backend \
             --restart unless-stopped \

@@ -49,3 +49,10 @@ const convo = new mongoose.Schema({
     },
     messages: [messages]
 })
+
+const User = mongoose.model("User", userSchema);
+const Movie = mongoose.model("Movie", movieSchema);
+const Message = mongoose.model("Message", messageSchema);
+const Convo = mongoose.model("Convo", convoSchema);
+
+module.exports = { User, Movie, Message, Convo };

@@ -1,63 +1,186 @@
-// Auto-hide flash messages after 5 seconds
-document.addEventListener('DOMContentLoaded', function() {
+let currentConvoId = null;
+let currentUserEmail = null;
+
+const API_BASE_URL = 'http://localhost:5001/api';
+
+document.addEventListener('DOMContentLoaded', function () {
     const flashMessages = document.querySelectorAll('.flash');
-    
-    flashMessages.forEach(function(message) {
-        setTimeout(function() {
+
+    flashMessages.forEach(function (message) {
+        setTimeout(function () {
             message.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(function() {
+            setTimeout(function () {
                 message.remove();
             }, 300);
         }, 5000);
     });
-    
-    // Chat functionality
+
+    const emailEl = document.querySelector('.user-email');
+    if (emailEl) {
+        currentUserEmail = emailEl.textContent.trim();
+    }
+
     initChat();
 });
 
-// Chat initialization
 function initChat() {
     const chatForm = document.getElementById('chatForm');
     if (!chatForm) return;
-    
-    chatForm.addEventListener('submit', function(e) {
+
+    chatForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        
+
         const input = document.getElementById('messageInput');
         const message = input.value.trim();
-        
-        if (message) {
-            addUserMessage(message);
-            input.value = '';
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // Simulate AI response with movie recommendation
-            setTimeout(() => {
-                hideTypingIndicator();
-                
-                // Check if message is asking for a movie recommendation
-                if (isMovieRequest(message)) {
-                    addBotMovieRecommendation(message);
-                } else {
-                    addBotMessage("I'm here to help you find great movies! Try asking me things like:\n\n• 'Recommend a scary horror movie'\n• 'I want to watch a comedy'\n• 'Give me an action movie like John Wick'\n\nWhat kind of movie are you in the mood for? 🎬");
-                }
-            }, 1500);
-        }
+
+        if (!message) return;
+
+        input.value = '';
+
+        showTypingIndicator();
+
+        sendMessageToBackend(message);
     });
 }
 
-// Check if message is requesting a movie
-function isMovieRequest(message) {
-    const keywords = ['movie', 'recommend', 'watch', 'film', 'show', 'suggest', 'horror', 'comedy', 'action', 'drama', 'thriller', 'romance', 'sci-fi', 'documentary', 'scary'];
-    const lowerMessage = message.toLowerCase();
-    return keywords.some(keyword => lowerMessage.includes(keyword));
+function sendMessageToBackend(userMessage) {
+    if (!currentUserEmail) {
+        hideTypingIndicator();
+        addBotMessage("You're not logged in or email is missing.");
+        return;
+    }
+
+    fetch(`${API_BASE_URL}/chat/message`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            role: 'user',
+            message: userMessage,
+            convo_id: currentConvoId || null,
+            user_email: currentUserEmail
+        })
+    })
+        .then(async res => {
+            let data = null;
+
+            try {
+                const clone = res.clone();
+                data = await res.json();
+                console.log('/chat/message JSON response:', {
+                    status: res.status,
+                    data
+                });
+            } catch (jsonErr) {
+                console.error('Failed to parse JSON from /chat/message response:', jsonErr);
+
+                try {
+                    const text = await res.text();
+                    console.log('/chat/message raw response body:', text);
+                    hideTypingIndicator();
+                    addBotMessage(`Error ${res.status}: Server returned non-JSON response.`);
+                } catch (textErr) {
+                    console.error('Also failed to read raw text:', textErr);
+                    hideTypingIndicator();
+                    addBotMessage(`Error ${res.status}: Could not read server response.`);
+                }
+                return;
+            }
+
+            hideTypingIndicator();
+
+            if (!res.ok || !data.success) {
+                const errorCode = data.error_code ? ` (${data.error_code})` : '';
+                const msg = data.message || 'Sorry, something went wrong. Please try again.';
+                console.error('/chat/message returned error:', {
+                    status: res.status,
+                    data
+                });
+                addBotMessage(`Error ${res.status}${errorCode}: ${msg}`);
+                return;
+            }
+
+            currentConvoId = data.convo_id;
+
+            loadConversation();
+        })
+        .catch(error => {
+            console.error('Network or fetch error calling /chat/message:', error);
+            hideTypingIndicator();
+            addBotMessage(`Network error: ${error.message}`);
+        });
 }
 
-// Add user message to chat
-function addUserMessage(text) {
+function loadConversation() {
+    if (!currentConvoId || !currentUserEmail) return;
+
+    fetch(`${API_BASE_URL}/chat/conversation/${currentConvoId}?user_email=${encodeURIComponent(currentUserEmail)}`)
+        .then(async res => {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                console.error('Failed to parse JSON from /chat/conversation response', e);
+                addBotMessage(`Error ${res.status}: Could not parse server response.`);
+                return;
+            }
+
+            console.log('/chat/conversation response:', {
+                status: res.status,
+                data
+            });
+
+            if (!res.ok) {
+                const errorCode = data.error_code ? ` (${data.error_code})` : '';
+                const msg = data.message || 'Could not load conversation.';
+                addBotMessage(`Error ${res.status}${errorCode}: ${msg}`);
+                return;
+            }
+
+            if (!data.success) {
+                const errorCode = data.error_code ? ` (${data.error_code})` : '';
+                addBotMessage(`${data.message || 'Could not load conversation.'}${errorCode}`);
+                return;
+            }
+
+            const convo = data.conversation;
+            const messages = convo.messages || [];
+            renderConversation(messages);
+        })
+        .catch(error => {
+            console.error('Error loading conversation:', error);
+            addBotMessage('Sorry, I had trouble loading the conversation.');
+        });
+}
+
+function renderConversation(messages) {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    chatMessages.innerHTML = '';
+
+    messages.forEach(msg => {
+        if (msg.role === 'user') {
+            addUserMessage(msg.content, false);
+        } else if (msg.role === 'model') {
+            if (isMovieRecommendation(msg.content)) {
+                addBotMovieRecommendationFromText(msg.content, false);
+            } else {
+                addBotMessage(msg.content, false);
+            }
+        } else {
+            addBotMessage(msg.content, false);
+        }
+    });
+
+    scrollToBottom();
+}
+
+function addUserMessage(text, scroll = true) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message user-message';
     messageDiv.innerHTML = `
@@ -66,12 +189,13 @@ function addUserMessage(text) {
         </div>
     `;
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    if (scroll) scrollToBottom();
 }
 
-// Add bot message to chat
-function addBotMessage(text) {
+function addBotMessage(text, scroll = true) {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
     messageDiv.innerHTML = `
@@ -80,69 +204,53 @@ function addBotMessage(text) {
         </div>
     `;
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    if (scroll) scrollToBottom();
 }
 
-// Add bot message with movie recommendation
-function addBotMovieRecommendation(userMessage) {
-    // TODO: Backend integration - Uncomment when ready
-    /*
-    const userEmail = document.querySelector('.user-email').textContent;
-    
-    fetch('/api/chat/message', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            user_email: userEmail,
-            message: userMessage
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            const aiResponse = data.response;
-            
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot-message';
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    <p>${escapeHtml(aiResponse).replace(/\n/g, '<br>')}</p>
-                    <p>Would you like to add this to your watchlist?</p>
-                    <button onclick="handleAddFromChat('Movie Name', 'Description', 120)" 
-                            class="btn btn-primary btn-sm rec-btn">
-                        ➕ Add to Watchlist
-                    </button>
-                </div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        addBotMessage('Sorry, I encountered an error. Please try again.');
-    });
-    return;
-    */
-    
-    // TEMPORARY: Mock movie recommendations (remove when backend is connected)
-    const movies = getMockRecommendation(userMessage);
-    const movie = movies[0];
-    
+function isMovieRecommendation(text) {
+    return /Movie Name:\s*/i.test(text) &&
+           /Runtime:\s*\d+/i.test(text) &&
+           /Description:\s*/i.test(text);
+}
+
+function parseMovieRecommendation(text) {
+    const nameMatch = text.match(/Movie Name:\s*(.+)/i);
+    const runtimeMatch = text.match(/Runtime:\s*([\d.]+)\s*minutes?/i);
+    const descMatch = text.match(/Description:\s*([\s\S]*)/i);
+
+    if (!nameMatch || !runtimeMatch || !descMatch) {
+        return null;
+    }
+
+    const name = nameMatch[1].trim();
+    const runtime = parseInt(runtimeMatch[1], 10);
+    const description = descMatch[1].trim();
+
+    return { name, runtime, description };
+}
+
+function addBotMovieRecommendationFromText(text, scroll = true) {
+    const parsed = parseMovieRecommendation(text);
+    if (!parsed) {
+        addBotMessage(text, scroll);
+        return;
+    }
+
+    const { name, runtime, description } = parsed;
+
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
     messageDiv.innerHTML = `
         <div class="message-content">
             <p>Great choice! I'd recommend:</p>
             <div class="recommendation-card">
-                <h4>🎬 ${escapeHtml(movie.name)}</h4>
-                <p class="rec-description">${escapeHtml(movie.description)}</p>
-                <p class="rec-runtime">⏱️ Runtime: ${movie.runtime} minutes</p>
-                <a href="/confirm?movie_name=${encodeURIComponent(movie.name)}&description=${encodeURIComponent(movie.description)}&runtime=${movie.runtime}" 
+                <h4>🎬 ${escapeHtml(name)}</h4>
+                <p class="rec-description">${escapeHtml(description)}</p>
+                <p class="rec-runtime">⏱️ Runtime: ${runtime} minutes</p>
+                <a href="/confirm?movie_name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}&runtime=${runtime}" 
                    class="btn btn-primary btn-sm rec-btn">
                     ➕ Add to Watchlist
                 </a>
@@ -151,55 +259,15 @@ function addBotMovieRecommendation(userMessage) {
         </div>
     `;
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    if (scroll) scrollToBottom();
 }
 
-// Get mock movie recommendation based on user message
-function getMockRecommendation(message) {
-    const lowerMessage = message.toLowerCase();
-    
-    if (lowerMessage.includes('horror') || lowerMessage.includes('scary')) {
-        return [{
-            name: 'The Conjuring',
-            description: 'Paranormal investigators work to help a family terrorized by a dark presence in their farmhouse.',
-            runtime: 112
-        }];
-    } else if (lowerMessage.includes('comedy') || lowerMessage.includes('funny')) {
-        return [{
-            name: 'The Grand Budapest Hotel',
-            description: 'A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy.',
-            runtime: 99
-        }];
-    } else if (lowerMessage.includes('action')) {
-        return [{
-            name: 'Mad Max: Fury Road',
-            description: 'In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland.',
-            runtime: 120
-        }];
-    } else if (lowerMessage.includes('sci-fi') || lowerMessage.includes('science fiction')) {
-        return [{
-            name: 'Blade Runner 2049',
-            description: 'A young blade runner discovers a secret that could plunge society into chaos and leads him on a quest to find a former blade runner.',
-            runtime: 164
-        }];
-    } else if (lowerMessage.includes('drama')) {
-        return [{
-            name: '12 Years a Slave',
-            description: 'In the antebellum United States, a free black man from upstate New York is kidnapped and sold into slavery.',
-            runtime: 134
-        }];
-    } else {
-        return [{
-            name: 'The Shawshank Redemption',
-            description: 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
-            runtime: 142
-        }];
-    }
-}
-
-// Show typing indicator
 function showTypingIndicator() {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    if (document.getElementById('typingIndicator')) return;
+
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message bot-message typing-indicator';
     typingDiv.id = 'typingIndicator';
@@ -216,7 +284,6 @@ function showTypingIndicator() {
     scrollToBottom();
 }
 
-// Hide typing indicator
 function hideTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
     if (indicator) {
@@ -224,25 +291,22 @@ function hideTypingIndicator() {
     }
 }
 
-// Scroll to bottom of chat
 function scrollToBottom() {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Escape HTML to prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Helper function to navigate to confirm page with movie details
 function handleAddFromChat(movieName, description, runtime) {
     window.location.href = `/confirm?movie_name=${encodeURIComponent(movieName)}&description=${encodeURIComponent(description)}&runtime=${runtime}`;
 }
 
-// Add slideOut animation
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideOut {

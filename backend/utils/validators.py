@@ -25,7 +25,7 @@ def validate_registration_data(data):
     elif len(password) < 6:
         errors["password"] = "Password must be at least 6 characters long."
 
-    return len(errors)==0
+    return len(errors)==0, ""
 
 
 def validate_login_data(data):
@@ -40,31 +40,20 @@ def validate_login_data(data):
     password = data.get("password")
     if not password or not isinstance(password, str):
         errors["password"] = "Password is required."
-    return len(errors)==0
+    return len(errors)==0,""
 
 
 def validate_chat_message(data):
     errors = {}
 
-    content = data.get("content")
+    content = data.get("message")
     if not content or not isinstance(content, str) or not content.strip():
-        errors["content"] = "Message content is required."
+        errors["message"] = "Message content is required."
 
-    role = data.get("role")
-    valid_roles = {"user", "model"}
 
-    if role not in valid_roles:
-        errors["role"] = "Role must be either 'user' or 'model'."
 
-    convo_id = data.get("convo_id")
-    if convo_id is None:
-        errors["convo_id"] = "Conversation ID (convo_id) is required."
-    else:
-        try:
-            int(convo_id)
-        except (ValueError, TypeError):
-            errors["convo_id"] = "convo_id must be a numeric value."
-    return len(errors)==0
+    
+    return len(errors)==0, ""
 
 
 def validate_movie_data(data):
@@ -74,14 +63,6 @@ def validate_movie_data(data):
     if not movie_name or not isinstance(movie_name, str) or not movie_name.strip():
         errors["movie_name"] = "Movie name is required."
 
-    movie_id = data.get("movie_id")
-    if movie_id is None:
-        errors["movie_id"] = "movie_id is required."
-    else:
-        try:
-            int(movie_id)
-        except (ValueError, TypeError):
-            errors["movie_id"] = "movie_id must be a numeric value."
 
     movie_description = data.get("movie_description")
     if movie_description is not None and not isinstance(movie_description, str):
@@ -98,6 +79,6 @@ def validate_movie_data(data):
         except (ValueError, TypeError):
             errors["rating"] = "rating must be a numeric value."
 
-    return len(errors)==0
+    return len(errors)==0, ""
 
     

@@ -1,8 +1,12 @@
 import weaviate
 from datasets import load_dataset
 from weaviate.classes.config import Configure, Property, DataType
-
-client = weaviate.connect_to_local(port=8080)
+import os
+from dotenv import load_dotenv
+from urllib.parse import urlparse
+WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
+parsed = urlparse(WEAVIATE_URL)
+client = weaviate.connect_to_local(host=parsed.hostname, port=parsed.port)
 ds = load_dataset("mt0rm0/movie_descriptors")
 
 
