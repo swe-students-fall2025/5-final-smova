@@ -47,7 +47,7 @@ def login():
         
         # TODO: Integrate with backend when ready
         # Uncomment below when backend API is ready:
-        """
+
         try:
             response = requests.post(f'{BACKEND_API_URL}/auth/login', 
                                     json={'email': email, 'password': password})
@@ -60,15 +60,7 @@ def login():
             flash('Invalid credentials', 'error')
         except Exception as e:
             flash(f'Error connecting to server: {str(e)}', 'error')
-        """
-        
-        # TEMPORARY: Development mode
-        if email and password:
-            session['user_email'] = email
-            flash('Login successful! (Development mode)', 'success')
-            return redirect(url_for('home'))
-        else:
-            flash('Please enter both email and password', 'error')
+      
     
     return render_template('login.html')
 
@@ -93,7 +85,6 @@ def register():
         
         # TODO: Integrate with backend when ready
         # Uncomment below when backend API is ready:
-        """
         try:
             response = requests.post(f'{BACKEND_API_URL}/auth/register',
                                     json={'fname': fname, 'lname': lname, 
@@ -104,12 +95,7 @@ def register():
             flash('Registration failed', 'error')
         except Exception as e:
             flash(f'Error connecting to server: {str(e)}', 'error')
-        """
         
-        # TEMPORARY: Development mode
-        flash('Registration successful! Please login. (Development mode)', 'success')
-        return redirect(url_for('login'))
-    
     return render_template('register.html')
 
 
@@ -130,9 +116,7 @@ def home():
 @app.route('/not-watched')
 @require_login
 def not_watched():
-    """Not watched movies list page"""
-    # TODO: Backend integration - Uncomment when ready
-    """
+
     try:
         user_email = session.get('user_email')
         response = requests.get(f'{BACKEND_API_URL}/movies/not-watched?user_email={user_email}')
@@ -144,32 +128,7 @@ def not_watched():
     except Exception as e:
         flash(f'Error loading movies: {str(e)}', 'error')
         movies = []
-    """
-    
-    # TEMPORARY: Mock data for development
-    movies = [
-        {
-            'movie_id': '1',
-            'movie_name': 'Inception',
-            'movie_description': 'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.',
-            'runtime': 148,
-            'has_watched': False
-        },
-        {
-            'movie_id': '2',
-            'movie_name': 'The Shawshank Redemption',
-            'movie_description': 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
-            'runtime': 142,
-            'has_watched': False
-        },
-        {
-            'movie_id': '3',
-            'movie_name': 'Interstellar',
-            'movie_description': 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-            'runtime': 169,
-            'has_watched': False
-        }
-    ]
+   
     
     return render_template('not_watched.html', movies=movies)
 
@@ -178,7 +137,6 @@ def not_watched():
 def movie_detail(movie_id):
     """Movie detail page"""
     # TODO: Backend integration - Uncomment when ready
-    """
     try:
         user_email = session.get('user_email')
         response = requests.get(f'{BACKEND_API_URL}/movies/{movie_id}?user_email={user_email}')
@@ -191,61 +149,9 @@ def movie_detail(movie_id):
     except Exception as e:
         flash(f'Error loading movie: {str(e)}', 'error')
         return redirect(url_for('not_watched'))
-    """
     
-    # TEMPORARY: Mock data for development
-    mock_movies = {
-        '1': {
-            'movie_id': '1',
-            'movie_name': 'Inception',
-            'movie_description': 'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
-            'runtime': 148,
-            'has_watched': False,
-            'rating': None
-        },
-        '2': {
-            'movie_id': '2',
-            'movie_name': 'The Shawshank Redemption',
-            'movie_description': 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
-            'runtime': 142,
-            'has_watched': False,
-            'rating': None
-        },
-        '3': {
-            'movie_id': '3',
-            'movie_name': 'Interstellar',
-            'movie_description': 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-            'runtime': 169,
-            'has_watched': False,
-            'rating': None
-        },
-        '4': {
-            'movie_id': '4',
-            'movie_name': 'The Dark Knight',
-            'movie_description': 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.',
-            'runtime': 152,
-            'has_watched': True,
-            'rating': 9.0
-        },
-        '5': {
-            'movie_id': '5',
-            'movie_name': 'Pulp Fiction',
-            'movie_description': 'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.',
-            'runtime': 154,
-            'has_watched': True,
-            'rating': 8.5
-        },
-        '6': {
-            'movie_id': '6',
-            'movie_name': 'Forrest Gump',
-            'movie_description': 'The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75.',
-            'runtime': 142,
-            'has_watched': True,
-            'rating': 8.8
-        }
-    }
     
-    movie = mock_movies.get(movie_id)
+    
     
     if not movie:
         flash('Movie not found', 'error')
@@ -259,8 +165,7 @@ def rate_movie(movie_id):
     """Rate a movie and mark as watched"""
     rating = request.form.get('rating')
     
-    # TODO: Backend integration - Uncomment when ready
-    """
+
     try:
         user_email = session.get('user_email')
         response = requests.put(
@@ -277,18 +182,13 @@ def rate_movie(movie_id):
             flash('Failed to rate movie', 'error')
     except Exception as e:
         flash(f'Error: {str(e)}', 'error')
-    """
-    
-    # TEMPORARY: Development mode
-    flash(f'Movie rated {rating}/10! (Development mode)', 'success')
+   
     return redirect(url_for('not_watched'))
 
 @app.route('/watched')
 @require_login
 def watched():
-    """Watched movies list page"""
-    # TODO: Backend integration - Uncomment when ready
-    """
+  
     try:
         user_email = session.get('user_email')
         response = requests.get(f'{BACKEND_API_URL}/movies/watched?user_email={user_email}')
@@ -300,35 +200,7 @@ def watched():
     except Exception as e:
         flash(f'Error loading movies: {str(e)}', 'error')
         movies = []
-    """
     
-    # TEMPORARY: Mock data for development
-    movies = [
-        {
-            'movie_id': '4',
-            'movie_name': 'The Dark Knight',
-            'movie_description': 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests.',
-            'runtime': 152,
-            'has_watched': True,
-            'rating': 9.0
-        },
-        {
-            'movie_id': '5',
-            'movie_name': 'Pulp Fiction',
-            'movie_description': 'The lives of two mob hitmen, a boxer, a gangster and his wife intertwine in four tales of violence and redemption.',
-            'runtime': 154,
-            'has_watched': True,
-            'rating': 8.5
-        },
-        {
-            'movie_id': '6',
-            'movie_name': 'Forrest Gump',
-            'movie_description': 'The presidencies of Kennedy and Johnson, the Vietnam War, and other historical events unfold from the perspective of an Alabama man.',
-            'runtime': 142,
-            'has_watched': True,
-            'rating': 8.8
-        }
-    ]
     
     return render_template('watched.html', movies=movies)
 
@@ -342,8 +214,7 @@ def confirm_movie():
         movie_description = request.form.get('movie_description')
         runtime = request.form.get('runtime')
         
-        # TODO: Backend integration - Uncomment when ready
-        """
+
         try:
             user_email = session.get('user_email')
             response = requests.post(
@@ -364,9 +235,7 @@ def confirm_movie():
                 flash('Failed to add movie', 'error')
         except Exception as e:
             flash(f'Error: {str(e)}', 'error')
-        """
         
-        # TEMPORARY: Development mode
         flash(f'"{movie_name}" added to your watchlist! (Development mode)', 'success')
         return redirect(url_for('not_watched'))
     

@@ -141,7 +141,7 @@ def login():
             }), 401
         
         # Generate JWT token
-        token = generate_token(user['email'], extra_claims={"email": user['email']})
+        token = generate_token(user['email'])
 
         
         logger.info(f"User logged in: {data['email']}")

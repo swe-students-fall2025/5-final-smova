@@ -25,7 +25,7 @@ def validate_registration_data(data):
     elif len(password) < 6:
         errors["password"] = "Password must be at least 6 characters long."
 
-    return len(errors)==0
+    return len(errors)==0, ""
 
 
 def validate_login_data(data):
@@ -40,7 +40,7 @@ def validate_login_data(data):
     password = data.get("password")
     if not password or not isinstance(password, str):
         errors["password"] = "Password is required."
-    return len(errors)==0
+    return len(errors)==0,""
 
 
 def validate_chat_message(data):
@@ -50,11 +50,7 @@ def validate_chat_message(data):
     if not content or not isinstance(content, str) or not content.strip():
         errors["content"] = "Message content is required."
 
-    role = data.get("role")
-    valid_roles = {"user", "model"}
 
-    if role not in valid_roles:
-        errors["role"] = "Role must be either 'user' or 'model'."
 
     convo_id = data.get("convo_id")
     if convo_id is None:
@@ -64,7 +60,7 @@ def validate_chat_message(data):
             int(convo_id)
         except (ValueError, TypeError):
             errors["convo_id"] = "convo_id must be a numeric value."
-    return len(errors)==0
+    return len(errors)==0, ""
 
 
 def validate_movie_data(data):
@@ -98,6 +94,6 @@ def validate_movie_data(data):
         except (ValueError, TypeError):
             errors["rating"] = "rating must be a numeric value."
 
-    return len(errors)==0
+    return len(errors)==0, ""
 
     
